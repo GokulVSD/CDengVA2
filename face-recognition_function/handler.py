@@ -12,7 +12,7 @@ s3 = boto3.client('s3')
 mtcnn = MTCNN(image_size=240, margin=0, min_face_size=20) # initializing mtcnn for face detection
 resnet = InceptionResnetV1(pretrained='vggface2').eval() # initializing resnet for face img to embeding conversion
 
-def face_recognition_function(key_path):
+def face_recognition_function(key_path, weights_path):
     # Face extraction
     img = cv2.imread(key_path, cv2.IMREAD_COLOR)
     boxes, _ = mtcnn.detect(img)
@@ -23,7 +23,7 @@ def face_recognition_function(key_path):
     output_filepath = os.path.join("/tmp", output_filename)
     img = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
     face, prob = mtcnn(img, return_prob=True, save_path=None)
-    saved_data = torch.load('/tmp/data.pt')  # loading data.pt file
+    saved_data = torch.load(weights_path)  # loading data.pt file
     if face != None:
         emb = resnet(face.unsqueeze(0)).detach()  # detech is to make required gradient false
         embedding_list = saved_data[0]  # getting embedding data
@@ -63,5 +63,5 @@ def handler(event, context):
         Key=input_filename
     )
 
-    output_path, filename = face_recognition_function(downloaded_file)
+    output_path, filename = face_recognition_function(downloaded_file, downloaded_weights_file)
     s3.upload_file(output_path, '1229503862-output', filename)

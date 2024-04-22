@@ -33,13 +33,15 @@ COPY --from=build-image ${FUNCTION_DIR} ${FUNCTION_DIR}
 # Copy handler function
 COPY requirements.txt ${FUNCTION_DIR}
 
-RUN python${RUNTIME_VERSION} -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+RUN python${RUNTIME_VERSION} -m pip install torch --index-url https://download.pytorch.org/whl/cpu --target ${FUNCTION_DIR}
 RUN python${RUNTIME_VERSION} -m pip install -r requirements.txt --target ${FUNCTION_DIR}
 COPY entry.sh /
 
 # Copy function code
 COPY handler.py ${FUNCTION_DIR}
 RUN chmod 777 /entry.sh
+
+ENV TORCH_HOME="/tmp/torch"
 
 # Set the CMD to your handler (could also be done as a parameter override outside of the Dockerfile)
 ENTRYPOINT [ "/entry.sh" ]
